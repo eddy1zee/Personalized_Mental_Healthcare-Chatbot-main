@@ -31,7 +31,7 @@ CRISIS_KEYWORDS = [
     'cutting', 'cut myself', 'want to cut', 'going to cut', 'overdose', 'jump off',
     'hang myself', 'worthless', 'hopeless', 'can\'t take it anymore', 'can\'t take this anymore',
     'nobody cares', 'everyone would be better without me', 'want to kill myself',
-    'going to kill myself', 'self-harm', 'self injury', 'harm myself', 'injure myself'
+    'going to kill myself', 'self-harm', 'self injury', 'harm myself', 'injure myself', 'bleeding'
 ]
 
 # Simple user database (in production, use a proper database)

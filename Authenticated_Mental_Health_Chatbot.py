@@ -22,7 +22,7 @@ try:
     groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 except Exception as e:
     groq_client = None
-    logging.warning(f"Groq client initialization failed: {e}")
+    logging.warning(f"Groq client initialization fails: {e}")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -334,7 +334,7 @@ try:
         raise FileNotFoundError("CSV file not found in any expected location")
 
 except FileNotFoundError:
-    st.error("❌ Mental health dataset not found. Please ensure AI_Mental_Health.csv is in the correct location.")
+    st.error("❌ Mental health dataset not found.  Please ensure AI_Mental_Health.csv is in the correct location.")
     knowledge_base = {}
 except Exception as e:
     st.error(f"❌ Error loading mental health dataset: {e}")
@@ -478,7 +478,7 @@ def main():
         st.error('Username/password is incorrect')
 
         # Registration option
-        st.markdown("---")
+        st.markdown("--")
         st.markdown("### Don't have an account?")
         if st.button("Create New Account"):
             st.session_state.show_registration = True

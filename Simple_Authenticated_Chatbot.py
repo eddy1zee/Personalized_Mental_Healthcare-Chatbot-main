@@ -28,9 +28,10 @@ logging.basicConfig(level=logging.INFO)
 CRISIS_KEYWORDS = [
     'suicide', 'kill myself', 'end my life', 'want to die', 'better off dead',
     'no point living', 'can\'t go on', 'end it all', 'hurt myself', 'self harm',
-    'cutting', 'overdose', 'jump off', 'hang myself', 'worthless', 'hopeless',
-    'can\'t take it anymore', 'can\'t take this anymore', 'nobody cares',
-    'everyone would be better without me', 'want to kill myself', 'going to kill myself'
+    'cutting', 'cut myself', 'want to cut', 'going to cut', 'overdose', 'jump off',
+    'hang myself', 'worthless', 'hopeless', 'can\'t take it anymore', 'can\'t take this anymore',
+    'nobody cares', 'everyone would be better without me', 'want to kill myself',
+    'going to kill myself', 'self-harm', 'self injury', 'harm myself', 'injure myself'
 ]
 
 # Simple user database (in production, use a proper database)
@@ -48,20 +49,31 @@ def load_users():
             for line in f:
                 if line.strip():
                     parts = line.strip().split('|')
-                    if len(parts) == 4:
+                    if len(parts) == 5:  # Updated to handle phone number
+                        username, email, name, phone, password_hash = parts
+                        users[username] = {
+                            'email': email,
+                            'name': name,
+                            'phone': phone,
+                            'password_hash': password_hash
+                        }
+                    elif len(parts) == 4:  # Backward compatibility for existing users
                         username, email, name, password_hash = parts
                         users[username] = {
                             'email': email,
                             'name': name,
+                            'phone': 'Not provided',
                             'password_hash': password_hash
                         }
     return users
 
-def save_user(username, email, name, password):
+def save_user(username, email, name, phone, password):
     """Save new user to file"""
     password_hash = hash_password(password)
+    # Clean phone number (remove empty strings)
+    phone = phone.strip() if phone else 'Not provided'
     with open(USER_DB_FILE, 'a') as f:
-        f.write(f"{username}|{email}|{name}|{password_hash}\n")
+        f.write(f"{username}|{email}|{name}|{phone}|{password_hash}\n")
 
 def authenticate_user(username, password):
     """Authenticate user"""
@@ -73,39 +85,47 @@ def authenticate_user(username, password):
 
 def analyze_sentiment_and_risk(text):
     """
-    Analyze sentiment and calculate crisis risk score
+    Simple sentiment analysis using TextBlob and crisis keyword detection
     """
     try:
-        blob = TextBlob(text.lower())
-        sentiment_score = blob.sentiment.polarity
+        # Simple TextBlob sentiment analysis (like your example)
+        blob = TextBlob(text)
+        sentiment = blob.sentiment
+        polarity = sentiment.polarity  # -1 (negative) to 1 (positive)
+        subjectivity = sentiment.subjectivity  # 0 (objective) to 1 (subjective)
 
+        # Check for crisis keywords
+        text_lower = text.lower()
+        crisis_keywords_found = []
+        for keyword in CRISIS_KEYWORDS:
+            if keyword in text_lower:
+                crisis_keywords_found.append(keyword)
+
+        # Calculate risk score based on keywords and sentiment
         risk_score = 0
-        crisis_count = sum(1 for keyword in CRISIS_KEYWORDS if keyword in text.lower())
 
-        # Enhanced sentiment analysis for crisis text
-        # If TextBlob returns neutral (0.0) but crisis keywords are present, assume negative
-        if sentiment_score == 0.0 and crisis_count > 0:
-            sentiment_score = -0.8  # Force very negative for crisis keywords
+        # Crisis keywords are the primary indicator
+        if crisis_keywords_found:
+            risk_score += len(crisis_keywords_found) * 4  # Each keyword adds 4 points
 
-        # Sentiment-based risk points
-        if sentiment_score < -0.5:
+        # Sentiment-based risk (secondary factor)
+        if polarity <= -0.5:  # Very negative
             risk_score += 3
-        elif sentiment_score < -0.2:
+        elif polarity <= -0.2:  # Negative
             risk_score += 2
-        elif sentiment_score < 0:
+        elif polarity < 0:  # Slightly negative
             risk_score += 1
 
-        # Crisis keywords are the most important factor
-        risk_score += crisis_count * 3  # Increased from 2 to 3
+        # Mental health indicators
+        mental_health_words = ['depressed', 'depression', 'anxiety', 'anxious', 'panic', 'scared', 'suicidal', 'desperate', 'overwhelmed']
+        mental_health_count = sum(1 for word in mental_health_words if word in text_lower)
+        if mental_health_count > 0:
+            risk_score += mental_health_count
 
-        # Additional mental health keywords
-        mental_health_words = ['depressed', 'anxiety', 'panic', 'scared', 'suicidal', 'desperate']
-        if any(word in text.lower() for word in mental_health_words):
-            risk_score += 1
-
-        # Cap risk score at 10
+        # Cap at 10
         risk_score = min(risk_score, 10)
-        
+
+        # Determine crisis level
         if risk_score >= 8:
             crisis_level = "SEVERE"
         elif risk_score >= 6:
@@ -114,16 +134,22 @@ def analyze_sentiment_and_risk(text):
             crisis_level = "MODERATE"
         else:
             crisis_level = "LOW"
-            
-        if sentiment_score > 0.1:
+
+        # Sentiment label based on polarity
+        if polarity > 0.1:
             sentiment_label = "POSITIVE"
-        elif sentiment_score < -0.1:
+        elif polarity < -0.1:
             sentiment_label = "NEGATIVE"
         else:
             sentiment_label = "NEUTRAL"
-            
-        return sentiment_score, risk_score, crisis_level, sentiment_label
-        
+
+        # Debug info for crisis detection
+        if crisis_keywords_found:
+            print(f"DEBUG: Crisis keywords found: {crisis_keywords_found}")
+            print(f"DEBUG: Polarity: {polarity}, Risk: {risk_score}")
+
+        return polarity, risk_score, crisis_level, sentiment_label
+
     except Exception as e:
         logging.error(f"Sentiment analysis error: {e}")
         return 0, 0, "LOW", "NEUTRAL"
@@ -331,7 +357,7 @@ try:
 except Exception as e:
     knowledge_base = {}
 
-def generate_response(input_text, user_email, user_name):
+def generate_response(input_text, user_email, user_name, user_phone=None):
     """
     Generate response with sentiment analysis and crisis detection
     """
@@ -339,10 +365,23 @@ def generate_response(input_text, user_email, user_name):
         # Analyze sentiment and risk
         sentiment_score, risk_score, crisis_level, sentiment_label = analyze_sentiment_and_risk(input_text)
         
-        # Display sentiment dashboard
+        # Display prominent sentiment dashboard
+        st.markdown("### 📊 **Sentiment Analysis Results**")
+
+        # Color-coded risk level display
+        if risk_score >= 8:
+            st.error(f"🚨 **SEVERE RISK DETECTED** - Score: {risk_score}/10")
+        elif risk_score >= 6:
+            st.warning(f"⚠️ **HIGH RISK DETECTED** - Score: {risk_score}/10")
+        elif risk_score >= 4:
+            st.warning(f"🟡 **MODERATE RISK DETECTED** - Score: {risk_score}/10")
+        else:
+            st.success(f"✅ **LOW RISK** - Score: {risk_score}/10")
+
+        # Detailed metrics in columns
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Risk Score", f"{risk_score}/10")
+            st.metric("Risk Score", f"{risk_score}/10", delta=None)
         with col2:
             st.metric("Crisis Level", crisis_level)
         with col3:
@@ -350,11 +389,13 @@ def generate_response(input_text, user_email, user_name):
         with col4:
             sentiment_color = "🟢" if sentiment_score > 0 else "🔴" if sentiment_score < -0.2 else "🟡"
             st.metric("Mood", f"{sentiment_color} {sentiment_score:.2f}")
+
+        st.markdown("---")
         
         # Automatic email alert for moderate to critical risk
         if risk_score >= 4:
             # Send automatic email alert for moderate+ risk
-            auto_contact_info = f"Automatic alert triggered by sentiment analysis\nRisk Level: {crisis_level}"
+            auto_contact_info = f"Automatic alert triggered by sentiment analysis\nRisk Level: {crisis_level}\nPhone: {user_phone if user_phone and user_phone != 'Not provided' else 'Not provided'}"
             email_sent = send_crisis_alert(user_email, user_name, input_text, risk_score, auto_contact_info)
 
             if email_sent:
@@ -436,20 +477,21 @@ def main():
                 new_username = st.text_input("Choose Username")
                 new_email = st.text_input("Email Address")
                 new_name = st.text_input("Full Name")
+                new_phone = st.text_input("Phone Number (for crisis alerts)", placeholder="e.g., +1-555-123-4567")
                 new_password = st.text_input("Choose Password", type="password")
                 confirm_password = st.text_input("Confirm Password", type="password")
                 register_button = st.form_submit_button("Create Account")
 
                 if register_button:
                     if not all([new_username, new_email, new_name, new_password]):
-                        st.error("Please fill in all fields")
+                        st.error("Please fill in all required fields")
                     elif new_password != confirm_password:
                         st.error("Passwords do not match")
                     elif new_username in load_users():
                         st.error("Username already exists")
                     else:
                         try:
-                            save_user(new_username, new_email, new_name, new_password)
+                            save_user(new_username, new_email, new_name, new_phone, new_password)
                             st.success("✅ Account created successfully! Please login.")
                         except Exception as e:
                             st.error(f"Registration failed: {e}")
@@ -463,6 +505,7 @@ def main():
         with st.sidebar:
             st.write(f'Welcome **{user_info["name"]}**')
             st.write(f'Email: {user_info["email"]}')
+            st.write(f'Phone: {user_info.get("phone", "Not provided")}')
 
             if st.button("Logout"):
                 st.session_state.authenticated = False
@@ -514,10 +557,17 @@ def main():
                     if 'chat_history' not in st.session_state:
                         st.session_state.chat_history = []
 
-                    # Add to chat history
+                    # Analyze sentiment for the message
+                    sentiment_score, risk_score, crisis_level, sentiment_label = analyze_sentiment_and_risk(input_text.strip())
+
+                    # Add to chat history with sentiment data
                     st.session_state.chat_history.append({
                         'user': input_text.strip(),
-                        'timestamp': time.time()
+                        'timestamp': time.time(),
+                        'risk_score': risk_score,
+                        'crisis_level': crisis_level,
+                        'sentiment_label': sentiment_label,
+                        'sentiment_score': sentiment_score
                     })
 
                     st.success("✅ Message processed!")
@@ -531,15 +581,41 @@ def main():
             # Display current conversation with analysis
             if send_clicked and input_text.strip():
                 st.markdown("#### 📊 Current Analysis")
-                generate_response(input_text.strip(), user_info['email'], user_info['name'])
+                generate_response(input_text.strip(), user_info['email'], user_info['name'], user_info.get('phone', 'Not provided'))
 
-            # Chat history
+            # Chat history with sentiment analysis
             if 'chat_history' in st.session_state and st.session_state.chat_history:
-                st.markdown("#### 💬 Recent Conversations")
+                st.markdown("#### 💬 Recent Conversations with Sentiment Analysis")
                 for i, chat in enumerate(reversed(st.session_state.chat_history[-3:])):
-                    with st.expander(f"Conversation {len(st.session_state.chat_history) - i}", expanded=(i == 0)):
-                        st.markdown("**You:**")
+                    # Get sentiment data if available
+                    risk_score = chat.get('risk_score', 0)
+                    crisis_level = chat.get('crisis_level', 'LOW')
+                    sentiment_label = chat.get('sentiment_label', 'NEUTRAL')
+                    sentiment_score = chat.get('sentiment_score', 0)
+
+                    # Color code the expander based on risk level
+                    if risk_score >= 6:
+                        expander_label = f"🚨 Conversation {len(st.session_state.chat_history) - i} - {crisis_level} RISK ({risk_score}/10)"
+                    elif risk_score >= 4:
+                        expander_label = f"⚠️ Conversation {len(st.session_state.chat_history) - i} - {crisis_level} RISK ({risk_score}/10)"
+                    else:
+                        expander_label = f"💬 Conversation {len(st.session_state.chat_history) - i} - {crisis_level} ({risk_score}/10)"
+
+                    with st.expander(expander_label, expanded=(i == 0)):
+                        st.markdown("**Your Message:**")
                         st.info(chat['user'])
+
+                        # Display sentiment metrics for this message
+                        if 'risk_score' in chat:
+                            col1, col2, col3 = st.columns(3)
+                            with col1:
+                                st.metric("Risk", f"{risk_score}/10")
+                            with col2:
+                                st.metric("Level", crisis_level)
+                            with col3:
+                                sentiment_color = "🟢" if sentiment_score > 0 else "🔴" if sentiment_score < -0.2 else "🟡"
+                                st.metric("Sentiment", f"{sentiment_color} {sentiment_label}")
+
                         st.caption(f"⏰ {time.strftime('%H:%M:%S', time.localtime(chat['timestamp']))}")
             else:
                 st.info(f"💡 Your personalized conversations will appear here, {user_info['name']}...")
@@ -560,19 +636,19 @@ def main():
             if st.button("😊 Positive Test (Risk: 0)"):
                 test_input = "I'm feeling great today and excited about my future!"
                 st.info(f"**Test Input**: {test_input}")
-                generate_response(test_input, user_info['email'], user_info['name'])
+                generate_response(test_input, user_info['email'], user_info['name'], user_info.get('phone', 'Not provided'))
 
         with col2:
             if st.button("😔 Moderate Risk Test (Risk: 4-5)"):
                 test_input = "I'm really struggling with depression and anxiety and don't know what to do"
                 st.info(f"**Test Input**: {test_input}")
-                generate_response(test_input, user_info['email'], user_info['name'])
+                generate_response(test_input, user_info['email'], user_info['name'], user_info.get('phone', 'Not provided'))
 
         with col3:
             if st.button("🚨 Crisis Test (Risk: 8+)"):
                 test_input = "I can't take this anymore, I want to end my life and kill myself"
                 st.info(f"**Test Input**: {test_input}")
-                generate_response(test_input, user_info['email'], user_info['name'])
+                generate_response(test_input, user_info['email'], user_info['name'], user_info.get('phone', 'Not provided'))
 
         # Sentiment analysis tester
         st.markdown("---")

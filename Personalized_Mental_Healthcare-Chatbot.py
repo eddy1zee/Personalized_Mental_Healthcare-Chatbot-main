@@ -85,113 +85,10 @@ except Exception as e:
 
 # Voice recognition using Groq Whisper (improved)
 def get_voice_input():
-    """Get voice input from user using Groq Whisper - Streamlit compatible"""
-    try:
-        import speech_recognition as sr
-        import tempfile
-        import os
-
-        if not groq_client:
-            st.error("❌ Groq client not available for voice transcription.")
-            return None
-
-        r = sr.Recognizer()
-
-        with sr.Microphone() as source:
-            st.info("🎤 Adjusting for ambient noise... Please wait.")
-            r.adjust_for_ambient_noise(source, duration=1)
-
-            # Lower the energy threshold for more sensitive detection
-            r.energy_threshold = max(50, r.energy_threshold * 0.5)
-            st.info(f"🔧 Energy threshold set to: {r.energy_threshold:.1f}")
-
-            st.success("🎤 Ready! Please speak LOUDLY and CLEARLY (you have 15 seconds)...")
-            st.warning("💡 Speak directly into your microphone!")
-
-            try:
-                audio = r.listen(source, timeout=15, phrase_time_limit=20)
-                st.info("🔄 Processing your speech with Groq Whisper...")
-
-                # Save audio to temporary file
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
-                    tmp_file.write(audio.get_wav_data())
-                    tmp_file_path = tmp_file.name
-
-                try:
-                    # Use Groq Whisper for transcription
-                    with open(tmp_file_path, "rb") as audio_file:
-                        transcription = groq_client.audio.transcriptions.create(
-                            file=audio_file,
-                            model="whisper-large-v3-turbo",
-                            response_format="text"
-                        )
-
-                    # Clean up temporary file
-                    os.unlink(tmp_file_path)
-
-                    if transcription and transcription.strip():
-                        st.success(f"✅ Whisper transcribed: {transcription}")
-                        return transcription.strip()
-                    else:
-                        st.warning("🤷 No speech detected in audio.")
-                        return None
-
-                except Exception as whisper_error:
-                    st.error(f"❌ Whisper transcription error: {whisper_error}")
-                    # Fallback to Google Speech Recognition
-                    st.info("🔄 Falling back to Google Speech Recognition...")
-                    try:
-                        query = r.recognize_google(audio)
-                        st.success(f"✅ Google recognized: {query}")
-                        return query
-                    except:
-                        st.warning("🤷 Could not transcribe audio with either service.")
-                        return None
-                finally:
-                    # Ensure temp file is cleaned up
-                    if os.path.exists(tmp_file_path):
-                        os.unlink(tmp_file_path)
-
-            except sr.WaitTimeoutError:
-                st.error("⏰ No speech detected within 15 seconds.")
-                st.info("💡 **Troubleshooting Tips:**")
-                st.write("• **Speak louder** - Your microphone might need more volume")
-                st.write("• **Get closer** - Move closer to your microphone")
-                st.write("• **Check microphone** - Ensure it's not muted")
-                st.write("• **Try again** - Sometimes it takes a few attempts")
-                st.write("• **Test microphone** - Try speaking in another app first")
-                return None
-
-    except ImportError as e:
-        st.error("❌ Speech recognition not available.")
-        st.info("Please install required packages:")
-        st.code("pip install SpeechRecognition pyaudio")
-        return None
-    except OSError as e:
-        if "PyAudio" in str(e):
-            st.error("❌ PyAudio not found. Voice input requires PyAudio for microphone access.")
-            st.info("Install PyAudio:")
-            st.code("pip install pyaudio")
-            st.info("If installation fails on Windows, try:")
-            st.code("pip install pipwin\npipwin install pyaudio")
-        else:
-            st.error(f"❌ Audio system error: {e}")
-        return None
-    except Exception as e:
-        error_msg = str(e)
-        if "PyAudio" in error_msg:
-            st.error("❌ PyAudio installation issue detected.")
-            st.info("Try installing PyAudio:")
-            st.code("pip install pyaudio")
-        elif "microphone" in error_msg.lower():
-            st.error("❌ Microphone access issue.")
-            st.info("Please check that:")
-            st.write("• Your microphone is connected and working")
-            st.write("• Browser has microphone permissions")
-            st.write("• No other application is using the microphone")
-        else:
-            st.error(f"❌ Voice recognition error: {error_msg}")
-        return None
+    """Get voice input from user - DISABLED for deployment"""
+    st.error("🚫 Voice input is temporarily disabled for deployment compatibility.")
+    st.info("Please use text input instead.")
+    return None
 
 # Define function for generating responses
 def generate_response(input_text):
@@ -452,28 +349,9 @@ def main():
                     st.write("• Use Clear Chat to start fresh")
 
     elif input_type == "🎤 Voice":
-        st.info("🎤 **Voice Input powered by Groq Whisper Large V3 Turbo**")
-        st.markdown("*High-quality speech recognition for mental health conversations*")
-
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🎤 Start Recording", type="primary"):
-                with st.spinner("🎤 Listening and transcribing with Whisper..."):
-                    voice_input = get_voice_input()
-                    if voice_input:
-                        st.session_state.voice_text = voice_input
-
-        with col2:
-            if st.button("Process Voice Input 📤"):
-                if hasattr(st.session_state, 'voice_text'):
-                    with st.spinner("🤖 Generating response with Groq..."):
-                        generate_response(st.session_state.voice_text)
-                else:
-                    st.warning("Please record your voice first.")
-
-        # Show current voice text if available
-        if hasattr(st.session_state, 'voice_text'):
-            st.text_area("📝 Transcribed Text:", value=st.session_state.voice_text, height=100, disabled=True)
+        st.warning("🚫 Voice input is temporarily disabled for deployment.")
+        st.info("💬 Please use the **Text** option above for now.")
+        st.markdown("**Why disabled?** PyAudio requires system-level audio libraries that aren't available on all deployment platforms.")
 
     # Display conversation history if available
     if 'conversation' not in st.session_state:

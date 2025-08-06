@@ -20,7 +20,7 @@ except Exception as e:
 logging.basicConfig(level=logging.INFO)
 
 # Groq API client function
-def call_groq_api(messages, model="llama-3.3-70b-versatile", max_tokens=300, temperature=0.7):
+def call_groq_api(messages, model="llama-3.3-70b-versatile", max_tokens=800, temperature=0.7):
     """
     Call Groq API for chat completions using the official SDK
     """
@@ -133,7 +133,7 @@ def generate_response(input_text):
             bot_response = call_groq_api(
                 messages=messages,
                 model="llama-3.3-70b-versatile",
-                max_tokens=300,  # Increased for complete responses
+                max_tokens=800,  # Increased for complete responses
                 temperature=0.7
             )
 
@@ -227,7 +227,7 @@ def get_bot_response(input_text):
             bot_response = call_groq_api(
                 messages=messages,
                 model="llama-3.3-70b-versatile",
-                max_tokens=300,
+                max_tokens=800,
                 temperature=0.7
             )
 

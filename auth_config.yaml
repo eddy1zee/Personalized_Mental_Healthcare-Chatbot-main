@@ -1,0 +1,8 @@
+cookie:
+  expiry_days: 30
+  key: mental_health_key_123
+  name: mental_health_chatbot
+credentials:
+  usernames: {}
+preauthorized:
+  emails: []

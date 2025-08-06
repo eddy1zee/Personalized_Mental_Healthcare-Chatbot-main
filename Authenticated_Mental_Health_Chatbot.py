@@ -542,7 +542,7 @@ def main():
 
             with st.form(key="authenticated_chat_form", clear_on_submit=True):
                 input_text = st.text_area(
-                    "Share what's on your mind:",
+                    "Share what's on your mind  (Direct message is encouraged):",
                     placeholder=f"Hi {name}, I'm here to listen and provide support...",
                     height=150,
                     key="authenticated_message_input"

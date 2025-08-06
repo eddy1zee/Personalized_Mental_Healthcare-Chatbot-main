@@ -262,6 +262,7 @@ def display_crisis_intervention(risk_score, user_message, user_email, user_name)
     st.markdown("### 🆘 **IMMEDIATE HELP AVAILABLE:**")
     col1, col2 = st.columns(2)
     
+    ################# Make changes here ############ 
     with col1:
         st.markdown("""
         **🚨 Emergency Services:**
@@ -282,25 +283,25 @@ def display_crisis_intervention(risk_score, user_message, user_email, user_name)
     st.markdown("### 📞 **Professional Help Contact**")
     st.info(f"Alert will be sent from your email ({user_email}) to the counselor.")
     
-    with st.form("crisis_contact_form"):
-        st.write("A mental health professional will be notified:")
+    # with st.form("crisis_contact_form"):
+    #     st.write("A mental health professional will be notified:")
         
-        phone = st.text_input("Phone Number (optional)")
-        additional_info = st.text_area("Additional Information (optional)")
+    #     phone = st.text_input("Phone Number (optional)")
+    #     additional_info = st.text_area("Additional Information (optional)")
         
-        consent = st.checkbox("I consent to sending this crisis alert to a mental health professional")
+    #     consent = st.checkbox("I consent to sending this crisis alert to a mental health professional")
         
-        if st.form_submit_button("🚨 Send Crisis Alert", type="primary"):
-            if consent:
-                contact_info = f"Phone: {phone}\nAdditional: {additional_info}"
+    #     if st.form_submit_button("🚨 Send Crisis Alert", type="primary"):
+    #         if consent:
+    #             contact_info = f"Phone: {phone}\nAdditional: {additional_info}"
                 
-                if send_crisis_alert(user_email, user_name, user_message, risk_score, contact_info):
-                    st.success("✅ Crisis alert sent successfully! Help is on the way.")
-                    st.info("Please stay safe and consider calling emergency services if you're in immediate danger.")
-                else:
-                    st.error("❌ Unable to send alert. Please call emergency services directly.")
-            else:
-                st.warning("Please provide consent to proceed.")
+    #             if send_crisis_alert(user_email, user_name, user_message, risk_score, contact_info):
+    #                # st.success("✅ Crisis alert sent successfully! Help is on the way.")
+    #                 st.info("Please stay safe and consider calling emergency services if you're in immediate danger.")
+    #             else:
+    #                 st.error("❌ Unable to send alert. Please call emergency services directly.")
+    #         else:
+    #             st.warning("Please provide consent to proceed.")
 
 # Groq API client function
 def call_groq_api(messages, model="llama-3.3-70b-versatile", max_tokens=800, temperature=0.7):
@@ -518,7 +519,7 @@ def main():
             st.write("✅ **Real-time sentiment analysis**")
             st.write("✅ **Crisis risk assessment**")
             st.write("✅ **Crisis alerts from your email**")
-
+            ##################### Make changes here ############
             st.markdown("---")
             st.header("🚨 Crisis Resources")
             st.write("**Emergency contacts:**")

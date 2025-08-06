@@ -280,8 +280,8 @@ def display_crisis_intervention(risk_score, user_message, user_email, user_name)
         """)
     
     # Contact form
-    st.markdown("### 📞 **Professional Help Contact**")
-    st.info(f"Alert will be sent from your email ({user_email}) to the counselor.")
+    st.markdown("### 📞 **Additional Support Resources**")
+    st.info("If you need immediate professional help, please use the emergency contacts above.")
     
     # with st.form("crisis_contact_form"):
     #     st.write("A mental health professional will be notified:")
@@ -399,10 +399,10 @@ def generate_response(input_text, user_email, user_name, user_phone=None):
             auto_contact_info = f"Automatic alert triggered by sentiment analysis\nRisk Level: {crisis_level}\nPhone: {user_phone if user_phone and user_phone != 'Not provided' else 'Not provided'}"
             email_sent = send_crisis_alert(user_email, user_name, input_text, risk_score, auto_contact_info)
 
-            if email_sent:
-                st.warning(f"🚨 **Alert Sent**: Risk level {crisis_level} detected. Counselor has been notified automatically.")
-            else:
-                st.error("⚠️ **Alert Failed**: Unable to send automatic alert. Please contact emergency services if needed.")
+            # if email_sent:
+            #     st.warning(f"🚨 **Alert Sent**: Risk level {crisis_level} detected. Counselor has been notified automatically.")
+            # else:
+            #     st.error("⚠️ **Alert Failed**: Unable to send automatic alert. Please contact emergency services if needed.")
 
         # Crisis intervention interface for high risk
         if risk_score >= 6:
@@ -478,7 +478,7 @@ def main():
                 new_username = st.text_input("Choose Username")
                 new_email = st.text_input("Email Address")
                 new_name = st.text_input("Full Name")
-                new_phone = st.text_input("Phone Number (for crisis alerts)", placeholder="e.g., +1-555-123-4567")
+                new_phone = st.text_input("Phone Number (optional)", placeholder="e.g., +1-555-123-4567")
                 new_password = st.text_input("Choose Password", type="password")
                 confirm_password = st.text_input("Confirm Password", type="password")
                 register_button = st.form_submit_button("Create Account")
@@ -518,7 +518,7 @@ def main():
             st.write("✅ **Personalized responses**")
             st.write("✅ **Real-time sentiment analysis**")
             st.write("✅ **Crisis risk assessment**")
-            st.write("✅ **Crisis alerts from your email**")
+            st.write("✅ **Professional mental health support**")
             ##################### Make changes here ############
             st.markdown("---")
             st.header("🚨 Crisis Resources")
@@ -623,7 +623,7 @@ def main():
                 st.markdown("**Features:**")
                 st.write("• Personalized responses using your name")
                 st.write("• Real-time sentiment analysis")
-                st.write("• Crisis alerts sent from your email")
+                st.write("• Professional mental health resources")
                 st.write("• Secure authentication")
 
         # Quick test buttons

@@ -674,14 +674,13 @@ def main():
                     st.metric("Mood", f"{sentiment_color} {sentiment_score:.2f}")
 
                 # Show what would happen
-                if risk_score >= 6:
+                '''if risk_score >= 6:
                     st.error("🚨 **HIGH RISK**: Crisis intervention would be triggered + Email sent")
                 elif risk_score >= 4:
                     st.warning("⚠️ **MODERATE RISK**: Automatic email alert would be sent")
                 elif risk_score >= 2:
                     st.info("💙 **LOW-MODERATE**: Additional resources would be provided")
                 else:
-                    st.success("✅ **LOW RISK**: Normal supportive response")
-
+                    st.success("✅ **LOW RISK**: Normal supportive response")'''
 if __name__ == '__main__':
     main()

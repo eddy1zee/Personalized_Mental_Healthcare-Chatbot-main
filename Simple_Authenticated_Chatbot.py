@@ -26,13 +26,44 @@ logging.basicConfig(level=logging.INFO)
 
 # Crisis keywords for detection
 CRISIS_KEYWORDS = [
+    # Original self-harm phrases remain the same
     'suicide', 'kill myself', 'end my life', 'want to die', 'better off dead',
     'no point living', 'can\'t go on', 'end it all', 'hurt myself', 'self harm',
     'cutting', 'cut myself', 'want to cut', 'going to cut', 'overdose', 'jump off',
     'hang myself', 'worthless', 'hopeless', 'can\'t take it anymore', 'can\'t take this anymore',
     'nobody cares', 'everyone would be better without me', 'want to kill myself',
-    'going to kill myself', 'self-harm', 'self injury', 'harm myself', 'injure myself', 'bleeding'
+    'going to kill myself', 'self-harm', 'self injury', 'harm myself', 'injure myself', 'bleeding',
+
+    # Expanded harm-to-others phrases:
+    'I\'ll kill you', 'you\'re dead', 'going to hurt you', 'I\'ll make you pay',
+    'they deserve to die', 'someone should kill them', 'I could murder someone',
+    'I want to hurt people', 'I\'ll show them all', 'blood will spill',
+    'going on a rampage', 'they\'ll regret this', 'this ends tonight',
+    'I have nothing to lose', 'I\'ll get revenge', 'prepare to suffer',
+    'they ruined my life', 'I\'ll end them', 'watch what happens',
+    'I have a plan', 'guns ready', 'they won\'t see it coming',
+    'time for payback', 'this world is trash', 'all must burn',
+    'cleaning house', 'final solution', 'violent revenge',
+    'they\'ll pay with blood', 'no mercy left', 'I can\'t control my anger',
+    'I might snap', 'someone must pay', 'destroy them all',
+    'hate everyone', 'losing my temper', 'on the edge',
+    'guns loaded', 'knife ready', 'waiting for the moment',
+    'I see red', 'blackout rage', 'ticking time bomb',
+    'they pushed too far', 'final warning', 'I\'m holding back',
+    'can\'t hold it in', 'trigger pulled', 'red mist coming',
+    'I\'ll make them hurt', 'pain is coming', 'eye for an eye',
+    # Add these if monitoring for domestic violence contexts:
+    'she should watch out', 'he\'ll regret leaving', 'take the kids away',
+    'they\'ll miss me when I\'m gone', 'showing who\'s boss', 'teach them a lesson',
+    # High-specificity threat indicators:
+    'going postal', 'cleaning house', 'final act',
+    'everyone will remember', 'written manifesto', 'left notes',
+    'no going back', 'crossed the line', 'already decided',
+    # Harm ideation without specific targets:
+    'need to punch something', 'wanna smash things', 'could kill right now',
+    'bottle is full', 'boiling point', 'car and a crowd'
 ]
+
 
 # Simple user database (in production, use a proper database)
 USER_DB_FILE = "users.txt"
